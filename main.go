@@ -38,7 +38,7 @@ func main() {
 		location := providerConfig.Require("region")
 
 		image, err := docker.NewRemoteImage(ctx, "app", &docker.RemoteImageArgs{
-			Name: pulumi.String("ghcr.io/a-mader/pulumi-go-translation-service:main"),
+			Name: pulumi.String("ghcr.io/a-mader/pulumi-go-translation-service:v0.1.0"),
 		})
 		if err != nil {
 			return err
