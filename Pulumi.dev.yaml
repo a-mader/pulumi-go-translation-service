@@ -1,0 +1,9 @@
+config:
+  gcp:project: poc-mevaco-chat
+  gcp:region: europe-west3
+  pulumi-go-translation-service:appPath: service
+  pulumi-go-translation-service:concurrency: "5"
+  pulumi-go-translation-service:containerPort: "3000"
+  pulumi-go-translation-service:cpu: "1"
+  pulumi-go-translation-service:memory: 1Gi
+  pulumi:template: container-gcp-go
