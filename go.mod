@@ -6,9 +6,8 @@ toolchain go1.21.6
 
 require (
 	github.com/pulumi/pulumi-docker/sdk/v4 v4.5.1
-	github.com/pulumi/pulumi-gcp/sdk/v7 v7.0.0
-	github.com/pulumi/pulumi-random/sdk/v4 v4.13.2
-	github.com/pulumi/pulumi/sdk/v3 v3.101.1
+	github.com/pulumi/pulumi-gcp/sdk/v6 v6.67.1
+	github.com/pulumi/pulumi/sdk/v3 v3.104.2
 )
 
 require (

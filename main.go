@@ -1,16 +1,24 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/pulumi/pulumi-docker/sdk/v4/go/docker"
-	"github.com/pulumi/pulumi-gcp/sdk/v7/go/gcp/cloudrun"
+	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/cloudrun"
+	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/secretmanager"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 )
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
+
+		SECRET_KEY := os.Getenv("SECRET_KEY")
+		if SECRET_KEY == "" {
+			panic("SECRET_KEY is missing")
+		}
 
 		const prefix = "ama-"
 		// Import the program's configuration settings.
@@ -38,7 +46,14 @@ func main() {
 		location := providerConfig.Require("region")
 
 		image, err := docker.NewRemoteImage(ctx, "app", &docker.RemoteImageArgs{
-			Name: pulumi.String("ghcr.io/a-mader/pulumi-go-translation-service:v0.1.0"),
+			Name: pulumi.String("amader/pulumi-go-translation-service:v0.2.0"),
+		})
+		if err != nil {
+			return err
+		}
+
+		secret, err := secretmanager.LookupSecretVersion(ctx, &secretmanager.LookupSecretVersionArgs{
+			Secret: "ama-my-secret",
 		})
 		if err != nil {
 			return err
@@ -63,6 +78,13 @@ func main() {
 									ContainerPort: pulumi.Int(containerPort),
 								},
 							},
+							Envs: cloudrun.ServiceTemplateSpecContainerEnvArray{
+								&cloudrun.ServiceTemplateSpecContainerEnvArgs{
+									Name: pulumi.String("SECRET_KEY"),
+									Value: pulumi.String(fmt.Sprintf("projects/%s/secrets/%s/versions/%s",
+										secret.Project, secret.Secret, secret.Version)),
+								},
+							},
 						},
 					},
 					ContainerConcurrency: pulumi.Int(concurrency),
@@ -73,8 +95,18 @@ func main() {
 			return err
 		}
 
+		_, err = cloudrun.NewIamMember(ctx, "translateIam", &cloudrun.IamMemberArgs{
+			Service:  service.Name,
+			Location: pulumi.String(location),
+			Role:     pulumi.String("roles/cloudtranslate.user"),
+			Member:   pulumi.String("allUsers"),
+		})
+		if err != nil {
+			return err
+		}
+
 		// Create an IAM member to make the service publicly accessible.
-		_, err = cloudrun.NewIamMember(ctx, "invoker", &cloudrun.IamMemberArgs{
+		_, err = cloudrun.NewIamMember(ctx, "invokerIam", &cloudrun.IamMemberArgs{
 			Service:  service.Name,
 			Location: pulumi.String(location),
 			Role:     pulumi.String("roles/run.invoker"),
