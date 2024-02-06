@@ -7,7 +7,10 @@ clear:
 	clear
 
 up: clear fmt
-	pulumi up -d -e
+	pulumi up -e
+
+up-debug: clear fmt
+	pulumi up -e -d
 
 fmt: 
 	go fmt
