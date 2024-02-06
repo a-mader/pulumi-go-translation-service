@@ -91,6 +91,8 @@ func service() http.Handler {
 		panic("SECRET_KEY is required")
 	}
 
+	gitHash := os.Getenv("GIT_VERSION_HASH")
+
 	r := chi.NewRouter()
 
 	r.Use(middlewares.Authenticate)
@@ -144,8 +146,13 @@ func service() http.Handler {
 	apiRouter := chi.NewRouter()
 
 	apiRouter.Get("/hello", func(w http.ResponseWriter, r *http.Request) {
-
+		w.WriteHeader(200)
 		w.Write([]byte("Hello from /api/v1/hello"))
+	})
+
+	apiRouter.Get("/version", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Write([]byte(gitHash))
 	})
 
 	apiRouter.Post("/translate", func(w http.ResponseWriter, r *http.Request) {
